@@ -1,6 +1,6 @@
 import * as d from '../../declarations';
 import { validateDocs } from './validate-docs';
-import { validateOutputTargetAngularProxy } from './validate-outputs-angular';
+import { validateOutputTargetAngular } from './validate-outputs-angular';
 import { validateOutputTargetDist } from './validate-outputs-dist';
 import { validateOutputTargetWww } from './validate-outputs-www';
 import { validateResourcesUrl } from './validate-resources-url';
@@ -30,7 +30,7 @@ export function validateOutputTargets(config: d.Config) {
 
   validateOutputTargetWww(config);
   validateOutputTargetDist(config);
-  validateOutputTargetAngularProxy(config);
+  validateOutputTargetAngular(config);
   validateDocs(config);
   validateStats(config);
 
