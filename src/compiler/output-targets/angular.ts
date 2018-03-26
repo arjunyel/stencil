@@ -28,6 +28,7 @@ async function angularDirectiveProxyOutput(config: d.Config, compilerCtx: d.Comp
   if (c.includes('@NgOutput')) {
     angularImports.push('Output as NgOutput');
     angularImports.push('EventEmitter as NgEventEmitter');
+    c = angularProxyOutput() + c;
   }
 
   c = `/* angular directive proxies */\nimport { ${angularImports.sort().join(', ')} } from '@angular/core';\n\n` + c;
@@ -51,6 +52,17 @@ function angularProxyInput() {
 }
 
 
+function angularProxyOutput() {
+  return [
+    `function outputs(instance: any, events: string[]) {`,
+    `  events.forEach(eventName => {`,
+    `    instance[eventName] = new NgEventEmitter();`,
+    `  });`,
+    `}\n`
+  ].join('\n') + '\n';
+}
+
+
 function angularDirectiveProxies(excludeComponents: string[], cmpRegistry: d.ComponentRegistry) {
   const metadata = Object.keys(cmpRegistry).map(key => cmpRegistry[key])
     .filter(c => {
@@ -62,23 +74,24 @@ function angularDirectiveProxies(excludeComponents: string[], cmpRegistry: d.Com
       return 0;
     });
 
-  const allInputs: string[] = [];
+  const allInstanceMembers: string[] = [];
 
-  let c = metadata.map(cmpMeta => angularDirectiveProxy(allInputs, cmpMeta)).join('\n');
+  let c = metadata.map(cmpMeta => angularDirectiveProxy(allInstanceMembers, cmpMeta)).join('\n');
 
-  allInputs.sort();
+  allInstanceMembers.sort();
 
-  const inputs = allInputs.map(v => `${v} = '${v}'`).join(', ');
+  const instanceMembers = allInstanceMembers.map(v => `${v} = '${v}'`).join(', ');
 
-  c = `const ${inputs};\n\n${c}`;
+  c = `const ${instanceMembers};\n\n${c}`;
 
   return c;
 }
 
 
-function angularDirectiveProxy(allInputs: string[], cmpMeta: d.ComponentMeta) {
+function angularDirectiveProxy(allInstanceMembers: string[], cmpMeta: d.ComponentMeta) {
   const o: string[] = [];
-  const inputVariables: string[] = [];
+  const inputMembers: string[] = [];
+  const outputMembers: string[] = [];
 
   o.push(`@NgDirective({ selector: '${cmpMeta.tagNameMeta}' })`);
   o.push(`export class ${cmpMeta.componentClass} {`);
@@ -91,14 +104,14 @@ function angularDirectiveProxy(allInputs: string[], cmpMeta: d.ComponentMeta) {
         o.push(getInput(memberName, m));
 
         if (RESERVED_KEYWORDS.includes(memberName)) {
-          inputVariables.push(`'${memberName}'`);
+          inputMembers.push(`'${memberName}'`);
 
         } else {
-          if (!allInputs.includes(memberName)) {
-            allInputs.push(memberName);
+          if (!allInstanceMembers.includes(memberName)) {
+            allInstanceMembers.push(memberName);
           }
 
-          inputVariables.push(memberName);
+          inputMembers.push(memberName);
         }
       }
     }
@@ -106,10 +119,31 @@ function angularDirectiveProxy(allInputs: string[], cmpMeta: d.ComponentMeta) {
 
   cmpMeta.eventsMeta.forEach(eventMeta => {
     o.push(`  @NgOutput() ${eventMeta.eventName}: NgEventEmitter<any>;`);
+
+    if (RESERVED_KEYWORDS.includes(eventMeta.eventName)) {
+      outputMembers.push(`'${eventMeta.eventName}'`);
+
+    } else {
+      if (!allInstanceMembers.includes(eventMeta.eventName)) {
+        allInstanceMembers.push(eventMeta.eventName);
+      }
+
+      outputMembers.push(eventMeta.eventName);
+    }
   });
 
-  if (inputVariables.length > 0) {
-    o.push(`  constructor(el: ElementRef) { inputs(this, el, [${inputVariables.join(`, `)}]); }`);
+  if (inputMembers.length > 0 || outputMembers.length > 0) {
+    o.push(`  constructor(${inputMembers.length > 0 ? `el: ElementRef` : ``}) {`);
+
+    if (inputMembers.length > 0) {
+      o.push(`    inputs(this, el, [${inputMembers.join(`, `)}]);`);
+    }
+
+    if (outputMembers.length > 0) {
+      o.push(`    outputs(this, [${outputMembers.join(`, `)}]);`);
+    }
+
+    o.push(`  }`);
   }
 
   o.push(`}\n`);
