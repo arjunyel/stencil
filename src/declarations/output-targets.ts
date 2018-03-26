@@ -52,8 +52,8 @@ export interface OutputTargetHydrate extends OutputTargetWww, d.HydrateOptions {
 
 
 export interface OutputTargetDocs extends OutputTarget {
-  dir?: string;
-  format?: 'json' | 'readme';
+  readmeDir?: string;
+  jsonFile?: string;
 }
 
 
