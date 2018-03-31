@@ -76,7 +76,9 @@ export function createPlatformClient(namespace: string, Context: d.CoreContext, 
     onReadyCallbacksMap: new WeakMap(),
     queuedEvents: new WeakMap(),
     vnodeMap: new WeakMap(),
-    valuesMap: new WeakMap()
+    valuesMap: new WeakMap(),
+
+    contentRefMap: new WeakMap()
   };
 
   // create the renderer that will be used

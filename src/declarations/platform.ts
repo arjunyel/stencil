@@ -38,6 +38,8 @@ export interface PlatformApi {
   queuedEvents?: WeakMap<d.HostElement, any[]>;
   vnodeMap?: WeakMap<d.HostElement, d.VNode>;
   valuesMap?: WeakMap<d.HostElement, any>;
+
+  contentRefMap: WeakMap<d.HostElement, Comment>;
 }
 
 

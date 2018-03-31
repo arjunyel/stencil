@@ -99,7 +99,9 @@ export function createPlatformServer(
     onReadyCallbacksMap: new WeakMap(),
     queuedEvents: new WeakMap(),
     vnodeMap: new WeakMap(),
-    valuesMap: new WeakMap()
+    valuesMap: new WeakMap(),
+
+    contentRefMap: new WeakMap()
   };
 
   // patch dom api like createElement()

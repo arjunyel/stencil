@@ -2,15 +2,16 @@ import { DomApi, HostElement, PlatformApi } from '../../declarations';
 import { NODE_TYPE } from '../../util/constants';
 
 
-export function assignHostContentSlots(plt: PlatformApi, domApi: DomApi, elm: HostElement, childNodes: NodeList, childNode?: Node, slotName?: string, defaultSlot?: Node[], namedSlots?: {[slotName: string]: Node[]}, i?: number) {
+export function assignHostContentSlots(plt: PlatformApi, domApi: DomApi, elm: HostElement, childNodes: NodeList, contentRef?: Comment, childNode?: Node, slotName?: string, defaultSlot?: Node[], namedSlots?: {[slotName: string]: Node[]}, i?: number) {
   // so let's loop through each of the childNodes to the host element
   // and pick out the ones that have a slot attribute
   // if it doesn't have a slot attribute, than it's a default slot
 
-  if (!elm.$defaultHolder) {
+  if (!plt.contentRefMap.has(elm)) {
     // create a comment to represent where the original
     // content was first placed, which is useful later on
-    domApi.$insertBefore(elm, (elm.$defaultHolder = domApi.$createComment('')), childNodes[0]);
+    plt.contentRefMap.set(elm, contentRef = domApi.$createComment(''));
+    domApi.$insertBefore(elm, contentRef, childNodes[0]);
   }
 
   for (i = 0; i < childNodes.length; i++) {

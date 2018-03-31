@@ -247,7 +247,6 @@ export interface HostElement extends HTMLElement {
   // not be property renamed (these should all be in externs)
   // HOWEVER!!! Don't use these :) Nothing to see here
   $activeLoading?: HostElement[];
-  $defaultHolder?: Comment;
   $initLoad: () => void;
   $rendered?: boolean;
   $onRender: (() => void)[];

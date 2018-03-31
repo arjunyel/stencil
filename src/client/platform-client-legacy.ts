@@ -81,7 +81,9 @@ export function createPlatformClientLegacy(namespace: string, Context: d.CoreCon
     onReadyCallbacksMap: new WeakMap(),
     queuedEvents: new WeakMap(),
     vnodeMap: new WeakMap(),
-    valuesMap: new WeakMap()
+    valuesMap: new WeakMap(),
+
+    contentRefMap: new WeakMap()
   };
 
   // create the renderer that will be used

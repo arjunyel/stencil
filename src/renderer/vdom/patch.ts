@@ -150,8 +150,9 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
     return vnode.elm;
   }
 
-  function addVnodes(parentElm: Node, before: Node, vnodes: VNode[], startIdx: number, endIdx: number, childNode?: Node, vnodeChild?: VNode) {
-    const containerElm = ((parentElm as HostElement).$defaultHolder && domApi.$parentNode((parentElm as HostElement).$defaultHolder)) || parentElm;
+  function addVnodes(parentElm: Node, before: Node, vnodes: VNode[], startIdx: number, endIdx: number, contentRef?: Node, childNode?: Node, vnodeChild?: VNode) {
+    contentRef = plt.contentRefMap.get(parentElm as any);
+    const containerElm = (contentRef && domApi.$parentNode(contentRef)) || parentElm;
 
     for (; startIdx <= endIdx; ++startIdx) {
       vnodeChild = vnodes[startIdx];
