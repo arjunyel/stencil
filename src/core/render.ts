@@ -79,8 +79,6 @@ export function render(plt: d.PlatformApi, cmpMeta: d.ComponentMeta, elm: d.Host
         oldVNode,
         hostVNode,
         isUpdateRender,
-        plt.defaultSlotsMap.get(elm),
-        plt.namedSlotsMap.get(elm),
         cmpMeta.componentConstructor.encapsulation
       );
 

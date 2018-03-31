@@ -64,8 +64,8 @@ export function mockPlatform(win?: any, domApi?: d.DomApi, cmpRegistry?: d.Compo
 
   const renderer = createRendererPatch(plt, domApi);
 
-  plt.render = function(oldVNode: d.VNode, newVNode: d.VNode, isUpdate: boolean, defaultSlot?: d.DefaultSlot, namedSlots?: d.NamedSlots) {
-    return renderer(oldVNode, newVNode, isUpdate, defaultSlot, namedSlots);
+  plt.render = function(oldVNode: d.VNode, newVNode: d.VNode, isUpdate: boolean) {
+    return renderer(oldVNode, newVNode, isUpdate);
   };
 
   return (<MockedPlatform>plt);

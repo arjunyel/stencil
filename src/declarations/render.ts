@@ -88,8 +88,6 @@ export interface RendererApi {
     oldVNode: d.VNode | Element,
     newVNode: d.VNode,
     isUpdate?: boolean,
-    defaultSlots?: d.DefaultSlot,
-    namedSlotsMap?: d.NamedSlots,
     encapsulation?: d.Encapsulation,
     ssrId?: number
   ): d.VNode;

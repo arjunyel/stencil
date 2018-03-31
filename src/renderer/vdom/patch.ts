@@ -22,6 +22,11 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
 
   function createElm(vnode: VNode, parentElm: Node, childIndex: number, i?: number, elm?: any, childNode?: Node, namedSlot?: string, slotNodes?: Node[], hasLightDom?: boolean) {
     if (!useNativeShadowDom && vnode.vtag === 'slot') {
+
+      if (!loadedSlotNodes) {
+        loadHostContent();
+      }
+
       if (defaultSlot || namedSlots) {
         if (scopeId) {
           domApi.$setAttribute(parentElm, scopeId + '-slot', '');
@@ -294,7 +299,7 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
     const elm: HostElement = newVNode.elm = <any>oldVNode.elm;
     const oldChildren = oldVNode.vchildren;
     const newChildren = newVNode.vchildren;
-    let defaultSlot: Node[];
+    let contentRef: Comment;
 
     if (Build.svg) {
       // test if we're rendering an svg element, or still rendering nodes inside of one
@@ -331,11 +336,9 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
         removeVnodes(oldChildren, 0, oldChildren.length - 1);
       }
 
-    } else if (defaultSlot = plt.defaultSlotsMap.get(elm)) {
+    } else if (contentRef = plt.contentRefMap.get(elm)) {
       // this element has slotted content
-      const parentElement = defaultSlot[0].parentElement;
-      domApi.$setTextContent(parentElement, newVNode.vtext);
-      plt.defaultSlotsMap.set(elm, [parentElement.childNodes[0]]);
+      domApi.$setTextContent(domApi.$parentNode(contentRef), newVNode.vtext);
 
     } else if (oldVNode.vtext !== newVNode.vtext) {
       // update the text content for the text only vnode
@@ -351,22 +354,64 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
     }
   }
 
+  function loadHostContent(i?: number, childNode?: Node, slotName?: string) {
+    const contentRef = plt.contentRefMap.get(hostElement as any);
+
+    if (contentRef) {
+      const relocatedParentElm = domApi.$parentNode(contentRef);
+
+      if (relocatedParentElm) {
+        const childNodes = domApi.$childNodes(relocatedParentElm);
+
+        for (i = 0; i < childNodes.length; i++) {
+          childNode = childNodes[i];
+
+          if (domApi.$nodeType(childNode) === NODE_TYPE.ElementNode && ((slotName = domApi.$getAttribute(childNode, 'slot')) != null)) {
+            // is element node
+            // this element has a slot name attribute
+            // so this element will end up getting relocated into
+            // the component's named slot once it renders
+            namedSlots = namedSlots || {};
+            if (namedSlots[slotName]) {
+              namedSlots[slotName].push(childNode);
+            } else {
+              namedSlots[slotName] = [childNode];
+            }
+
+          } else {
+            // this is a text node
+            // or it's an element node that doesn't have a slot attribute
+            // let's add this node to our collection for the default slot
+            if (defaultSlot) {
+              defaultSlot.push(childNode);
+            } else {
+              defaultSlot = [childNode];
+            }
+          }
+        }
+      }
+    }
+
+    loadedSlotNodes = true;
+  }
+
   // internal variables to be reused per patch() call
   let isUpdate: boolean,
+      hostElement: HostElement,
       defaultSlot: DefaultSlot,
       namedSlots: NamedSlots,
+      loadedSlotNodes: boolean,
       useNativeShadowDom: boolean,
       ssrId: number,
       scopeId: string;
 
 
-  return function patch(oldVNode: VNode, newVNode: VNode, isUpdatePatch?: boolean, elmDefaultSlot?: DefaultSlot, elmNamedSlots?: NamedSlots, encapsulation?: Encapsulation, ssrPatchId?: number) {
+  return function patch(oldVNode: VNode, newVNode: VNode, isUpdatePatch?: boolean, encapsulation?: Encapsulation, ssrPatchId?: number) {
     // patchVNode() is synchronous
     // so it is safe to set these variables and internally
     // the same patch() call will reference the same data
     isUpdate = isUpdatePatch;
-    defaultSlot = elmDefaultSlot;
-    namedSlots = elmNamedSlots;
+    hostElement = oldVNode.elm as HostElement;
 
     if (Build.ssrServerSide) {
       if (encapsulation !== 'shadow') {
@@ -407,6 +452,8 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
       // should be given the ssr id attribute
       domApi.$setAttribute(oldVNode.elm, SSR_VNODE_ID, ssrId);
     }
+
+    hostElement = defaultSlot = namedSlots = loadedSlotNodes = null;
 
     // return our new vnode
     return newVNode;
