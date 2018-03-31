@@ -131,9 +131,24 @@ describe('h()', () => {
     expect(vnode.vkey).toBe('my-key');
   });
 
-  it('should not set vkey', () => {
+  it('should set vkey to undefined when key is undefined', () => {
+    const vnode = h('div', { key: undefined });
+    expect(vnode.vkey).toBe(undefined);
+  });
+
+  it('should set vkey to undefined when key is null', () => {
+    const vnode = h('div', { key: null });
+    expect(vnode.vkey).toBe(undefined);
+  });
+
+  it('should set vkey to undefined when we have data, but no key', () => {
+    const vnode = h('div', { some: 'data' });
+    expect(vnode.vkey).toBe(undefined);
+  });
+
+  it('should set vkey to undefined when no data', () => {
     const vnode = h('div', null);
-    expect(vnode.vkey).toBe(null);
+    expect(vnode.vkey).toBe(undefined);
   });
 
   it('should set vattrs ref', () => {

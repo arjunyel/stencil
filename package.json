@@ -108,6 +108,6 @@
     "transform": {
       "^.+\\.(ts|tsx)$": "<rootDir>/scripts/jest.preprocessor.js"
     },
-    "testRegex": "/Users/adam/git/stencil/src/renderer/vdom/test/ssr.spec.ts"
+    "testRegex": "/src/.*\\.spec\\.(ts|tsx|js)$"
   }
 }

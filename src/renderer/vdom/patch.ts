@@ -8,7 +8,7 @@
  */
 import { Build } from '../../util/build-conditionals';
 import { DefaultSlot, DomApi, Encapsulation, HostElement, NamedSlots, PlatformApi, RendererApi, VNode } from '../../declarations';
-import { isDef, isUndef } from '../../util/helpers';
+import { isDef } from '../../util/helpers';
 import { NODE_TYPE, SSR_CHILD_ID, SSR_VNODE_ID } from '../../util/constants';
 import { updateElement } from './update-dom-node';
 
@@ -100,7 +100,7 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
       // add css classes, attrs, props, listeners, etc.
       updateElement(plt, null, vnode, isSvgMode);
 
-      if (scopeId !== null && elm._scopeId !== scopeId) {
+      if (isDef(scopeId) && elm._scopeId !== scopeId) {
         // if there is a scopeId and this is the initial render
         // then let's add the scopeId as an attribute
         domApi.$setAttribute(elm, (elm._scopeId = scopeId), '');
@@ -162,10 +162,10 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
     for (; startIdx <= endIdx; ++startIdx) {
       vnodeChild = vnodes[startIdx];
 
-      if (isDef(vnodeChild)) {
+      if (vnodeChild) {
         childNode = isDef(vnodeChild.vtext) ? domApi.$createTextNode(vnodeChild.vtext) : createElm(vnodeChild, parentElm, startIdx);
 
-        if (isDef(childNode)) {
+        if (childNode) {
           vnodeChild.elm = childNode;
           domApi.$insertBefore(containerElm, childNode, before);
         }
@@ -196,7 +196,8 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
 
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
       if (oldStartVnode == null) {
-        oldStartVnode = oldCh[++oldStartIdx]; // Vnode might have been moved left
+         // Vnode might have been moved left
+        oldStartVnode = oldCh[++oldStartIdx];
 
       } else if (oldEndVnode == null) {
         oldEndVnode = oldCh[--oldEndIdx];
@@ -217,26 +218,28 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
         oldEndVnode = oldCh[--oldEndIdx];
         newEndVnode = newCh[--newEndIdx];
 
-      } else if (isSameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
+      } else if (isSameVnode(oldStartVnode, newEndVnode)) {
+        // Vnode moved right
         patchVNode(oldStartVnode, newEndVnode);
         domApi.$insertBefore(parentElm, oldStartVnode.elm, domApi.$nextSibling(oldEndVnode.elm));
         oldStartVnode = oldCh[++oldStartIdx];
         newEndVnode = newCh[--newEndIdx];
 
-      } else if (isSameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
+      } else if (isSameVnode(oldEndVnode, newStartVnode)) {
+        // Vnode moved left
         patchVNode(oldEndVnode, newStartVnode);
         domApi.$insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm);
         oldEndVnode = oldCh[--oldEndIdx];
         newStartVnode = newCh[++newStartIdx];
 
       } else {
-        if (isUndef(oldKeyToIdx)) {
+        if (!isDef(oldKeyToIdx)) {
           oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
         }
 
         idxInOld = oldKeyToIdx[newStartVnode.vkey];
 
-        if (isUndef(idxInOld)) {
+        if (!isDef(idxInOld)) {
           // new element
           node = createElm(newStartVnode, parentElm, newStartIdx);
           newStartVnode = newCh[++newStartIdx];
@@ -308,7 +311,7 @@ export function createRendererPatch(plt: PlatformApi, domApi: DomApi): RendererA
       isSvgMode = newVNode.vtag === 'svg' ? true : (newVNode.vtag === 'foreignObject' ? false : isSvgMode);
     }
 
-    if (isUndef(newVNode.vtext)) {
+    if (!isDef(newVNode.vtext)) {
       // element node
 
       if (newVNode.vtag !== 'slot') {
