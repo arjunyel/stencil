@@ -58,6 +58,8 @@ export function h(nodeName: any, vnodeData: any, child?: any) {
     }
   }
 
+  let vkey: any = null;
+
   if (vnodeData) {
     // normalize class / classname attributes
     if (vnodeData['className']) {
@@ -74,6 +76,10 @@ export function h(nodeName: any, vnodeData: any, child?: any) {
       vnodeData['class'] = stack.join(' ');
       stack.length = 0;
     }
+
+    if (vnodeData.key != null) {
+      vkey = vnodeData.key;
+    }
   }
 
   if (typeof nodeName === 'function') {
@@ -89,7 +95,7 @@ export function h(nodeName: any, vnodeData: any, child?: any) {
     vchildren: children,
     vtext: null,
     vattrs: vnodeData,
-    vkey: vnodeData && vnodeData.key,
+    vkey: vkey,
     elm: null,
     ishost: false
   } as d.VNode;
